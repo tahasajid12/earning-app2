@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/><meta name="theme-color" content="#0f9d58"/><title>Earning User App</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;background:#0b7a43;color:#111}
+.hidden{display:none!important}.screen{min-height:100vh}
+button{font:inherit;cursor:pointer;border:0}
+input,select{width:100%;padding:13px;border-radius:10px;border:1.5px solid #cfd3ff;font-size:15px;outline:0;margin-bottom:12px;background:#fff}
+#loadingScreen{display:flex;justify-content:center;align-items:center;background:#0f9d58}
+.spin{width:40px;height:40px;border:4px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:s 1s linear infinite}@keyframes s{to{transform:rotate(360deg)}}
+/* AUTH */
+#authScreen{display:flex;justify-content:center;align-items:center;padding:24px;background:linear-gradient(160deg,#0f766e,#064e3b)}
+.acard{width:100%;max-width:400px;text-align:center;color:#fff}
+.orb{width:80px;height:80px;margin:0 auto 16px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#6ee7b7,#0d9488);box-shadow:0 0 0 8px rgba(255,255,255,.08),0 0 0 9px rgba(255,255,255,.35) inset}
+.acard h1{font-size:26px}.acard h1 b{color:#ffb531}.acard .sub{font-size:11px;letter-spacing:2px;opacity:.6;margin:4px 0 22px;font-weight:700}
+.acard input{background:#0b4a3f;color:#fff;border:1.5px solid #2a8c78}.acard input::placeholder{color:#9fd8c8}
+.row{display:flex;justify-content:space-between;font-size:12px;margin:-4px 0 16px}.row a{color:#ffb531;font-weight:700}
+.gold{width:100%;padding:15px;border-radius:14px;font-weight:700;background:linear-gradient(#ffe08a,#f5a623);color:#222;font-size:16px}
+.alink{margin-top:26px;font-size:13px}.alink b{color:#ffb531;display:block;margin-top:4px;cursor:pointer}
+#authError{margin-top:12px;background:#fdecea;color:#c62828;padding:10px;border-radius:10px;font-size:13px}
+/* HOME */
+.wrap{padding:16px 14px 110px}.page{display:none}.page.on{display:block}
+.brand{text-align:center;color:#fff;margin-bottom:12px}.brand b{font-size:18px;display:block}.brand small{opacity:.85}
+.bal{background:linear-gradient(135deg,#22c55e,#0f7a3a);border-radius:28px;padding:18px;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.18);margin-bottom:16px}
+.bal .amt{font-size:32px;font-weight:700;margin:4px 0 12px;display:flex;align-items:center;gap:10px}.bal .amt i{font-style:normal;cursor:pointer;font-size:24px}
+.mini{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}.mini div{background:rgba(255,255,255,.2);border-radius:10px;padding:8px 4px;text-align:center;font-size:10px}.mini b{display:block;font-size:12px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}.two button{padding:13px;border-radius:12px;color:#fff;font-weight:700;background:#34d399}.two button:last-child{background:#b91c1c}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+.tile{border-radius:14px;padding:16px 4px;color:#fff;text-align:center;font-weight:700;font-size:12px;display:flex;flex-direction:column;gap:6px;align-items:center;cursor:pointer}.tile span{font-size:22px}
+.sc{background:#fff;border-radius:12px;padding:12px 14px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}.sc small{color:#555;display:block}.sc b{font-size:17px}.sc i{font-style:normal;width:38px;height:38px;border-radius:9px;display:flex;align-items:center;justify-content:center;color:#fff}
+.notice{background:#fff3cd;color:#856404;padding:10px;border-radius:10px;font-size:13px;margin-bottom:12px}
+/* DARK PAGES */
+.dark{background:#050b2e;margin:-16px -14px;padding:20px 14px 110px;min-height:100vh;color:#fff}
+.dark h2{text-align:center;margin-bottom:16px;font-size:17px;color:#cfd6ff}
+.pc{background:#0c1640;border:1px solid #1d2a6b;border-radius:18px;padding:16px;margin-bottom:14px}
+.pc .h{display:flex;gap:12px;align-items:center;margin-bottom:12px}.pc .ic{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#0ea5e9,#22d3ee)}
+.pc .inv{display:flex;justify-content:space-between;background:#0a1236;border-radius:12px;padding:12px;margin-bottom:12px}.pc .inv small{color:#9aa6e0;display:block;font-size:12px}.pc .inv b{font-size:18px}
+.pc p{margin:7px 0;color:#d6dcff;font-size:14px}.pc .rb{text-align:center;margin:12px 0}
+.cy{width:100%;padding:14px;border-radius:30px;font-weight:700;color:#fff;font-size:15px;background:linear-gradient(90deg,#0891d1,#00c6ff)}
+.dark input,.dark select{background:#1226ff;color:#fff;border:0}.dark input::placeholder{color:#b9c2ff}
+.gbox{background:#e6f6ea;color:#1b8a3f;border-radius:10px;padding:12px;text-align:center;font-weight:700;margin-bottom:12px}
+.ibox{background:#f7faf8;color:#444;border:1px dashed #bbb;border-radius:10px;padding:12px;font-size:13px;margin-bottom:12px;white-space:pre-line}
+.white{background:#fff;color:#111;border-radius:16px;padding:16px}.white label{font-weight:700;font-size:13px;display:block;margin:4px 0}
+.wm{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px}.wm div{background:#0b1fff;border-radius:14px;padding:12px;text-align:center;border:2px solid #3f8cff}.wm div b{display:block;height:80px;border-radius:10px;background:#fff;color:#111;line-height:80px;margin-bottom:10px}.wm button{width:100%;padding:8px;font-size:12px;font-weight:700;background:transparent;border:1px solid #fff;color:#fff;border-radius:6px}
+.tw{overflow-x:auto;background:#07243a;border:1px solid #11708a;border-radius:12px;margin-top:10px}table{width:100%;border-collapse:collapse;font-size:12px;min-width:480px}th,td{padding:10px 8px;text-align:left;border-bottom:1px solid #0e4a63}th{background:#0a4a60}
+.ok{color:#2ee59d}.bad{color:#ff6b6b}.pen{color:#ffc857}
+.dbtn{background:#1226ff;color:#fff;border-radius:6px;padding:6px 9px}
+.back{display:block;margin:0 auto 12px;background:#1226ff;color:#fff;padding:9px 20px;border-radius:20px}
+.act{background:#fff;color:#111;border:2px solid #2e7d32;border-radius:14px;padding:14px;margin-bottom:12px;text-align:center}.claim{width:100%;margin-top:8px;padding:12px;border-radius:8px;background:#2e7d32;color:#fff;font-weight:700}.claim:disabled{background:gray}
+.tbox{background:#0c3b4d;border:1px solid #1fb5d4;border-radius:10px;padding:14px;text-align:center;margin-top:10px}
+.ref{background:#0c1640;border:1px solid #1d2a6b;border-radius:16px;padding:16px;text-align:center;margin-bottom:14px}.ref input{background:#1226ff;color:#fff;border:0;font-size:12px}
+.chat{height:55vh;overflow-y:auto;background:#fff;border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:8px;color:#111}
+.m{max-width:80%;padding:8px 12px;border-radius:14px;font-size:14px;white-space:pre-wrap;word-wrap:break-word}.m small{display:block;font-size:10px;opacity:.7}.m.user{align-self:flex-end;background:#4f46e5;color:#fff}.m.admin{align-self:flex-start;background:#eef0f4}
+.crow{display:flex;gap:8px;margin-top:10px}.crow input{margin:0;border-radius:24px}.crow button{width:48px;border-radius:50%;background:#00bcd4;color:#fff}
+/* NAV */
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;justify-content:space-around;align-items:flex-end;padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:20;border-radius:18px 18px 0 0}
+nav button{width:58px;height:46px;border-radius:12px;color:#fff;font-size:10px;font-weight:600;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:.9}
+nav .home{width:58px;height:58px;border-radius:50%;background:#f97316;margin-top:-30px;font-size:24px;box-shadow:0 4px 10px rgba(0,0,0,.3)}
+nav button.cur{outline:3px solid rgba(0,0,0,.15)}
+/* MODAL / TOAST */
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:100;padding:20px}
+.md{background:#0a1236;color:#fff;border-radius:16px;padding:20px;width:100%;max-width:380px;max-height:88vh;overflow:auto}.md h3{display:flex;justify-content:space-between;font-size:14px;margin-bottom:14px}
+.md .pm{display:flex;gap:10px;justify-content:center;margin-bottom:12px}.md .pm button{padding:10px 14px;border:1px solid #2a3b8f;background:transparent;color:#fff;border-radius:8px;font-size:12px}.md .pm button.s{background:#0891d1}
+.md .dr{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid #1d2a6b;font-size:13px}.md .dr span{color:#4fc3f7}
+.pw{background:#fff;color:#333;border-radius:12px;padding:20px 26px;display:flex;gap:16px;align-items:center}.pw .spin{width:28px;height:28px;border-color:#cde;border-top-color:#2e9e5b}
+#toast{position:fixed;top:0;left:0;right:0;z-index:200;padding:14px;font-size:13px;display:none;color:#fff}
+</style></head><body>
+<div id="loadingScreen" class="screen"><div class="spin"></div></div>
+
+<div id="authScreen" class="screen hidden"><div class="acard">
+<div class="orb"></div><h1>Welcome <b id="at">Back</b></h1><div class="sub">SAFE &amp; SECURE LOGIN</div>
+<form id="authForm">
+<input id="fullName" class="sg hidden" placeholder="Full Name"/>
+<input id="username" class="sg hidden" placeholder="Username (yahi Referral Code hoga)" autocapitalize="none" maxlength="20"/>
+<input id="email" type="email" required placeholder="Email"/>
+<input id="password" type="password" required placeholder="Password"/>
+<input id="refCode" class="sg hidden" placeholder="Referral Code (Optional)" style="text-transform:uppercase"/>
+<div class="row" id="lgRow"><label><input id="remember" type="checkbox" style="width:auto;margin:0 4px 0 0;vertical-align:middle"/>Remember me</label><a href="#" id="forgot">Forgot Password?</a></div>
+<button id="authBtn" class="gold" type="submit">Login Now</button></form>
+<div id="authError" class="hidden"></div>
+<div class="alink"><span id="tl">Naye user?</span><b id="toggleAuth">Create New Account</b></div></div></div>
+
+<div id="appScreen" class="screen hidden"><div class="wrap">
+<!-- HOME -->
+<div id="p-home" class="page on">
+<div class="brand"><b id="appName">Earning App</b><small id="uname">—</small></div>
+<div id="notice" class="notice hidden"></div>
+<div class="bal"><small>My Balance</small><div class="amt"><span>Rs <span id="bal">0.00</span></span><i id="eye">👁</i></div>
+<div class="mini"><div>Total Invest<b id="sInv">0.00</b></div><div>Total Withdraw<b id="sWd">0.00</b></div><div>Total Team<b id="sTm">0</b></div></div>
+<div class="two"><button onclick="go('deposit')">Deposit</button><button onclick="go('withdraw')">Withdraw</button></div></div>
+<div class="grid">
+<div class="tile" style="background:#4f46e5" onclick="go('task')"><span>☑</span>Task</div>
+<div class="tile" style="background:#eab308" onclick="go('dh')"><span>🧾</span>Deposits</div>
+<div class="tile" style="background:#4f46e5" onclick="openAdmin()"><span>🟢</span>Admin</div>
+<div class="tile" style="background:#eab308" onclick="ext('whatsappGroup')"><span>🟢</span>Community</div>
+<div class="tile" style="background:#20b2a0" onclick="go('team')"><span>👥</span>My Team</div>
+<div class="tile" style="background:#6d7bff" onclick="go('wh')"><span>🎁</span>Withdrawals</div>
+<div class="tile" style="background:#6d7bff" onclick="ext('appLink')"><span>⬇</span>APP</div>
+<div class="tile" style="background:#111827" onclick="handleLogout()"><span>➜</span>Logout</div></div>
+<div id="stats"></div></div>
+<!-- PLANS -->
+<div id="p-plans" class="page"><div class="dark"><h2>VIP Investment Plans</h2><div id="plansList"></div></div></div>
+<!-- DEPOSIT -->
+<div id="p-deposit" class="page"><div class="dark"><h2>Deposit</h2><div class="white">
+<div class="gbox" id="payBox">You need to pay 0 PKR</div>
+<div class="ibox" id="instr">Admin ne payment info set nahi ki.</div>
+<label>Payment Method</label><select id="dMethod"><option>Easypaisa</option><option>JazzCash</option><option>Bank Transfer</option></select>
+<label>Amount (PKR)</label><div style="display:flex;gap:8px;margin-bottom:8px"><button type="button" class="dbtn" onclick="qa(500)">500</button><button type="button" class="dbtn" onclick="qa(1000)">1000</button><button type="button" class="dbtn" onclick="qa(2000)">2000</button></div><input id="dAmt" type="number" placeholder="e.g. 1000"/>
+<label>Your Sender Account Number</label><input id="dAcc" placeholder="03001234567"/>
+<label>Your Transaction ID</label><input id="dTid" placeholder="Enter Transaction / Reference ID"/>
+<label>Payment Screenshot (zaroori)</label><input id="dProof" type="file" accept="image/*"/><img id="dPrev" class="hidden" alt="" style="width:100%;max-height:220px;object-fit:contain;margin-bottom:12px;border-radius:8px;background:#f1f1f1"/>
+<button class="cy" onclick="submitDeposit(this)">Submit Deposit</button></div></div></div>
+<!-- WITHDRAW -->
+<div id="p-withdraw" class="page"><div class="dark"><h2>Withdraw Money</h2>
+<div class="wm"><div><b>Easypaisa</b><button onclick="wSel('Easypaisa')">WITHDRAW NOW</button></div><div><b>JazzCash</b><button onclick="wSel('JazzCash')">WITHDRAW NOW</button></div></div>
+<div id="wForm" class="white hidden"><label id="wLbl">Easypaisa</label>
+<input id="wAmt" type="number" placeholder="Amount (PKR)"/><input id="wAcc" placeholder="Your Account Number"/><input id="wTitle" placeholder="Account Title (Full Name)"/>
+<button class="cy" onclick="submitWithdraw(this)">Confirm Withdraw</button></div></div></div>
+<!-- TASK -->
+<div id="p-task" class="page"><div class="dark"><h2>Daily Tasks</h2><div id="taskList"></div></div></div>
+<!-- HISTORIES -->
+<div id="p-dh" class="page"><div class="dark"><h2>Deposit History</h2><button class="back" onclick="go('home')">← Back Now</button><input id="dhQ" placeholder="Search by transactions" oninput="renderHist()"/><div class="tw"><table id="dhT"></table></div></div></div>
+<div id="p-wh" class="page"><div class="dark"><h2>Withdraw History</h2><button class="back" onclick="go('home')">← Back Now</button><input id="whQ" placeholder="Search by transactions" oninput="renderHist()"/><div class="tw"><table id="whT"></table></div></div></div>
+<!-- TEAM -->
+<div id="p-team" class="page"><div class="dark"><h2>Invite &amp; Earn</h2>
+<div class="ref"><p style="font-size:13px;margin-bottom:10px">Earn bonus when your network invests.</p><input id="refLink" readonly/><button class="cy" onclick="copyRef()">Copy</button><button class="cy" style="margin-top:10px" onclick="shareRef()">Share on WhatsApp</button></div>
+<h2>Commission Levels</h2><div class="pc" style="text-align:center" id="lvl">Level 1</div>
+<div class="tw"><table id="teamT"></table></div></div></div>
+<!-- CHAT -->
+<div id="p-chat" class="page"><div class="dark"><h2>Support Chat (Admin)</h2><div class="chat" id="chatBox"></div>
+<div class="crow"><input id="chatIn" placeholder="Apna message likhein..." maxlength="1000"/><button onclick="sendChat()">➤</button></div></div></div>
+<!-- PROFILE -->
+<div id="p-profile" class="page"><div class="dark"><h2>My Profile</h2><div class="pc" style="line-height:2">
+<b>Name:</b> <span id="prN"></span><br><b>Username:</b> <span id="prU"></span><br><b>Email:</b> <span id="prE"></span><br><b>Status:</b> <span id="prS" class="ok"></span></div>
+<button class="cy" onclick="go('chat')" style="margin-bottom:10px">💬 Support Chat</button><button class="cy" style="background:#b91c1c" onclick="handleLogout()">Logout</button>
+<h2 style="margin-top:22px">Transactions</h2><div id="txList"></div></div></div>
+</div>
+<nav><button style="background:#ff9800" data-p="deposit" onclick="go('deposit')">💳<span>Deposit</span></button><button style="background:#e53935" data-p="withdraw" onclick="go('withdraw')">💸<span>Withdraw</span></button><button class="home" data-p="home" onclick="go('home')">🏠</button><button style="background:#4f46e5" data-p="plans" onclick="go('plans')">💼<span>Plans</span></button><button style="background:#43a047" data-p="profile" onclick="go('profile')">👤<span>Profile</span></button></nav></div>
+
+<div id="invModal" class="ov hidden"><div class="md"><h3><span>Confirm Investment</span><span onclick="closeInv()" style="cursor:pointer">✕</span></h3>
+<p style="text-align:center;font-weight:700;margin-bottom:12px" id="invAmt"></p>
+<div class="pm"><button data-m="Easypaisa" onclick="pickM(this)">EASYPAISA</button><button data-m="JazzCash" onclick="pickM(this)">JAZZ CASH</button></div>
+<input id="invIn" readonly style="background:#1226ff;color:#fff;border:0"/><button class="cy" id="invBtn" onclick="confirmInvest()">CONFIRM INVEST</button></div></div>
+<div id="detModal" class="ov hidden" onclick="this.classList.add('hidden')"><div class="md" id="detBody"></div></div>
+<div id="loader" class="ov hidden"><div class="pw"><div class="spin"></div>Please wait a moment…</div></div>
+<div id="adBox" class="ov hidden" style="z-index:150;background:rgba(0,0,0,.92)"><div style="text-align:center;color:#fff;width:100%;max-width:380px"><div style="margin-bottom:12px;font-size:14px">Ad <b id="adCnt" style="font-size:20px">5</b> second mein khatam hoga, phir reward milega</div><img id="adImg" alt="Ad" style="width:100%;border-radius:14px;max-height:62vh;object-fit:contain;background:#111"/><div style="margin-top:10px;font-size:11px;opacity:.6">Ad</div></div></div>
+<div id="toast"></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, updateProfile, setPersistence, browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { getFirestore, doc, setDoc, collection, addDoc, query, where, serverTimestamp, onSnapshot, getDocs, updateDoc, getDoc, writeBatch, increment } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+const app=initializeApp({apiKey:"AIzaSyDxlvVuaz36spNRfPnimsPJBTWWFT7fhbk",authDomain:"earning-admin-app-d9b38.firebaseapp.com",projectId:"earning-admin-app-d9b38",storageBucket:"earning-admin-app-d9b38.firebasestorage.app",messagingSenderId:"602619033913",appId:"1:602619033913:web:f2282f455cd240139310e8"});
+const auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
+const show=id=>$(id).classList.remove("hidden"),hide=id=>$(id).classList.add("hidden");
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const f2=n=>Number(n||0).toFixed(2);
+let login=true,U=null,S={},unsubs=[],signingUp=false,codeOk=false,balHidden=false,wMethod="",invPlan=null,invMethod="Easypaisa";
+let plans={},myPlans=[],allPlans=[],deps=[],wds=[],refs=[],txs=[];
+
+function toast(m,ok){const t=$("toast");t.textContent=m;t.style.background=ok?"#2e7d32":"#d9534f";t.style.display="block";clearTimeout(t._t);t._t=setTimeout(()=>t.style.display="none",3500);}
+window.go=function(n){document.querySelectorAll(".page").forEach(p=>p.classList.remove("on"));$("p-"+n).classList.add("on");document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("cur",b.dataset.p===n));window.scrollTo(0,0);if(n==="chat")setTimeout(()=>{$("chatBox").scrollTop=1e9},50);if(n==="deposit")updPay();};
+const loader=(ms=900)=>{show("loader");setTimeout(()=>hide("loader"),ms)};
+const fixUrl=x=>{x=String(x||"").trim();return /^https?:\/\//i.test(x)?x:"https://"+x};
+const DEFAULT_SITE="https://tahasajid12.github.io/earning-app1/";
+function setRefLink(){const w=(/^https?:$/.test(location.protocol)&&!S.siteUrl)?location.origin+location.pathname:fixUrl(S.siteUrl||DEFAULT_SITE);$("refLink").value=w+(w.includes("?")?"&":"?")+"ref="+((U&&U.referralCode)||"");}
+const notifyAdmin=(title,msg)=>{if(!S.ntfyTopic)return;try{fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic:S.ntfyTopic,title,message:msg,priority:4,tags:["moneybag"]})}).catch(()=>{})}catch(_){}};
+const openUrl=url=>{loader(1200);const w=window.open(url,"_blank");if(!w)location.href=url};
+window.ext=function(key){const u=S[key];if(!u||!String(u).trim()){toast("Ye link abhi set nahi hai. Admin Panel > Settings mein link daalein.");return}openUrl(fixUrl(u));};
+window.openAdmin=function(){if(S.adminWhatsapp)openUrl("https://wa.me/"+String(S.adminWhatsapp).replace(/\D/g,""));else go("chat")};
+
+// ---------- AUTH ----------
+function setMode(l){login=l;hide("authError");$("at").textContent=l?"Back":"Account";document.querySelector("h1").firstChild.textContent=l?"Welcome ":"Create ";$("authBtn").textContent=l?"Login Now":"Sign Up";$("tl").textContent=l?"Naye user?":"Already registered?";$("toggleAuth").textContent=l?"Create New Account":"Login";document.querySelectorAll(".sg").forEach(e=>e.classList.toggle("hidden",l));$("lgRow").classList.toggle("hidden",!l);}
+$("toggleAuth").onclick=()=>setMode(!login);
+const qr=(new URLSearchParams(location.search).get("ref")||new URLSearchParams(location.search).get("reference"));if(qr){$("refCode").value=qr.toUpperCase();setMode(false);}
+$("forgot").onclick=async e=>{e.preventDefault();const m=$("email").value.trim()||prompt("Apna email likhein:");if(!m)return;try{await sendPasswordResetEmail(auth,m);toast("Password reset email bhej di gayi.",1)}catch(x){toast(x.message)}};
+$("authForm").addEventListener("submit",async e=>{
+e.preventDefault();hide("authError");
+const email=$("email").value.trim(),password=$("password").value,fullName=$("fullName").value.trim(),refCode=$("refCode").value.trim().toUpperCase(),btn=$("authBtn");
+btn.disabled=true;btn.textContent="Please wait...";
+try{
+if(login){await setPersistence(auth,$("remember").checked?browserLocalPersistence:browserSessionPersistence);await signInWithEmailAndPassword(auth,email,password);}
+else{
+if(!fullName)throw new Error("Full name required");
+const username=$("username").value.trim().toLowerCase();
+if(!/^[a-z0-9_]{3,20}$/.test(username))throw new Error("Username 3 se 20 characters ka ho (sirf a-z, 0-9 aur _).");
+const myCode=username.toUpperCase();signingUp=true;
+const uc=await createUserWithEmailAndPassword(auth,email,password);
+await updateProfile(uc.user,{displayName:fullName});const uid=uc.user.uid;
+let referrerId=null;
+if(refCode){try{const rs=await getDoc(doc(db,"referralCodes",refCode));if(rs.exists()&&rs.data().uid!==uid)referrerId=rs.data().uid;}catch(_){}
+if(!referrerId)alert("Invalid Referral Code! Signup referrer ke baghair continue ho raha hai.");}
+try{const t=await getDoc(doc(db,"referralCodes",myCode));if(t.exists())throw new Error("TAKEN");await setDoc(doc(db,"referralCodes",myCode),{uid});}
+catch(x){try{await uc.user.delete()}catch(_){}throw new Error(x.message==="TAKEN"?"Ye username pehle se liya hua hai, koi doosra chunein.":"Username save nahi ho saka: "+x.message);}
+await setDoc(doc(db,"users",uid),{fullName,email,balance:0,status:"active",username,referralCode:myCode,referredBy:referrerId,planCount:0,createdAt:serverTimestamp()});
+if(referrerId){try{await setDoc(doc(db,"referrals",uid),{referrerId,referredId:uid,referredName:fullName,bonusPaid:false,createdAt:serverTimestamp()});}catch(_){}}
+signingUp=false;}
+}catch(err){
+signingUp=false;
+if(!login&&auth.currentUser){try{const c=await getDoc(doc(db,"users",auth.currentUser.uid));if(!c.exists())await signOut(auth)}catch(_){}}
+let m=err.message;if(err.code==="auth/invalid-credential")m="Email ya password ghalat hai.";if(err.code==="auth/email-already-in-use")m="Ye email pehle se registered hai.";
+$("authError").textContent=m;show("authError");btn.disabled=false;btn.textContent=login?"Login Now":"Sign Up";}
+});
+window.handleLogout=function(){signOut(auth);toast("You have been logged out.",1)};
+
+async function ensureCode(uid,d){
+if(codeOk)return;codeOk=true;
+try{
+if(d.username&&d.referralCode){const r=doc(db,"referralCodes",d.referralCode);if(!(await getDoc(r)).exists())await setDoc(r,{uid});return;}
+let base=((auth.currentUser?.email)||"user").split("@")[0].toLowerCase().replace(/[^a-z0-9_]/g,"").slice(0,16);if(base.length<3)base+="user";
+for(let i=0;i<10;i++){const un=i?base+Math.floor(100+Math.random()*900):base,code=un.toUpperCase(),r=doc(db,"referralCodes",code),s=await getDoc(r);
+if(s.exists()&&s.data().uid!==uid)continue;if(!s.exists())await setDoc(r,{uid});await updateDoc(doc(db,"users",uid),{username:un,referralCode:code});return;}
+}catch(e){console.log(e)}}
+
+async function loadSettings(){try{const s=await getDoc(doc(db,"appSettings","config"));if(s.exists()){S=s.data();$("appName").textContent=S.appName||"Earning App";if(Object.keys(plans).length)loadPlans();setRefLink();
+if(S.notice&&S.notice.trim()){$("notice").textContent="📢 "+S.notice;show("notice")}else hide("notice");$("lvl").textContent="Level 1: "+(S.referralMode==="percent"?(S.referralPercent||0)+"% of plan price":S.referralMode==="both"?"Rs "+(S.referralBonus??50)+" + "+(S.referralPercent||0)+"% of plan price":"Rs "+(S.referralBonus??50))+" on first plan purchase";}}catch(e){console.log(e)}}
+
+function calcBonus(c,price){const m=c.referralMode||"fixed",fx=c.referralBonus!=null?+c.referralBonus:50,pc=+c.referralPercent||0;
+return Math.round(((m!=="percent"?fx:0)+(m!=="fixed"?price*pc/100:0))*100)/100;}
+function bonusTxt(price){return "Rs "+calcBonus(S,price)+(S.referralMode&&S.referralMode!=="fixed"?" ("+(S.referralMode==="percent"?"":"fixed + ")+(S.referralPercent||0)+"%)":"");}
+// ---------- LISTENERS ----------
+const listen=(q,fn)=>unsubs.push(onSnapshot(q,fn,e=>console.log("listen err",e.message)));
+onAuthStateChanged(auth,user=>{
+unsubs.forEach(u=>u());unsubs=[];
+if(!user){U=null;codeOk=false;plans={};hide("loadingScreen");hide("appScreen");show("authScreen");$("authBtn").disabled=false;$("authBtn").textContent=login?"Login Now":"Sign Up";return;}
+hide("authScreen");hide("appScreen");show("loadingScreen");loadSettings();loadPlans();
+const uid=user.uid,w=c=>query(collection(db,c),where("userId","==",uid));
+listen(doc(db,"users",uid),async s=>{
+if(!s.exists()){if(!signingUp)signOut(auth);return}
+U=s.data();
+if(U.status==="suspended"){alert("Aapka account suspend kar diya gaya hai. Admin se rabta karein.");signOut(auth);return}
+$("uname").textContent="Hi, "+(U.fullName||U.username||"").split(" ")[0];$("prN").textContent=U.fullName||"";$("prU").textContent=U.username||"—";$("prE").textContent=user.email;$("prS").textContent=U.status||"Active";
+setRefLink();
+renderBal();ensureCode(uid,U);hide("loadingScreen");hide("authScreen");show("appScreen");});
+listen(w("userPlans"),s=>{allPlans=s.docs.map(d=>({id:d.id,data:d.data()}));myPlans=allPlans.filter(x=>x.data.status==="active");renderTasks();renderStats();});
+listen(w("depositRequests"),s=>{deps=s.docs.map(d=>({id:d.id,...d.data()}));renderStats();renderHist();});
+listen(w("withdrawalRequests"),s=>{wds=s.docs.map(d=>({id:d.id,...d.data()}));renderStats();renderHist();});
+listen(query(collection(db,"referrals"),where("referrerId","==",uid)),s=>{refs=s.docs.map(d=>d.data());renderTeam();renderStats();});
+listen(w("transactions"),s=>{txs=s.docs.map(d=>d.data());renderTx();renderStats();});
+listen(w("messages"),s=>renderChat(s.docs.map(d=>d.data())));
+});
+
+// ---------- RENDER ----------
+const ms=o=>o?.createdAt?.toMillis?o.createdAt.toMillis():Date.now();
+const st=s=>/approv|complet|success|paid/i.test(s||"")?"ok":/reject|declin|cancel|fail/i.test(s||"")?"bad":"pen";
+const sum=(a,s)=>a.filter(x=>st(x.status)===s).reduce((t,x)=>t+(+x.amount||0),0);
+const ago=m=>{const d=(Date.now()-m)/1000;return d<60?"just now":d<3600?Math.floor(d/60)+" min ago":d<86400?Math.floor(d/3600)+" hours ago":Math.floor(d/86400)+" days ago"};
+function renderBal(){if(!U)return;$("bal").textContent=balHidden?"••••":f2(U.balance);}
+$("eye").onclick=()=>{balHidden=!balHidden;renderBal()};
+function renderStats(){
+const inv=allPlans.reduce((t,x)=>t+(+x.data.pricePaid||0),0),wd=sum(wds,"ok"),comm=txs.filter(t=>t.type==="Referral Bonus").reduce((t,x)=>t+(+x.amount||0),0);
+$("sInv").textContent=f2(inv);$("sWd").textContent=f2(wd);$("sTm").textContent=refs.length;
+const it=[["Active Plans",myPlans.length,"#eab308","📦"],["Commission","Pkr "+f2(comm),"#4f46e5","💳"],["Reject Withdraw","Pkr "+f2(sum(wds,"bad")),"#f97316","📉"],["Total Deposit","Pkr "+f2(sum(deps,"ok")),"#eab308","👛"],["Total Withdraw","Pkr "+f2(wd),"#4f46e5","💵"],["Pending Withdraw","Pkr "+f2(sum(wds,"pen")),"#f97316","⏳"],["Pending Deposit","Pkr "+f2(sum(deps,"pen")),"#eab308","⏳"]];
+$("stats").innerHTML=it.map(x=>`<div class="sc"><div><small>${x[0]}</small><b>${x[1]}</b></div><i style="background:${x[2]}">${x[3]}</i></div>`).join("");}
+async function loadPlans(){
+try{const s=await getDocs(collection(db,"plans"));let h="";
+s.forEach(d=>{const p=d.data();plans[d.id]=p;const tot=(+p.dailyReward||0)*(+p.durationDays||0);
+h+=`<div class="pc"><div class="h"><div class="ic"></div><div><b>${esc(p.name)}</b><br><small style="color:#9aa6e0">Duration ${p.durationDays} Days</small></div></div>
+<div class="inv"><div><small>Investment</small><b>Rs ${p.price}</b></div><div style="text-align:right"><small>Daily Profit</small><b>PKR ${p.dailyReward}</b></div></div>
+<p>${p.durationDays} Days Duration</p><p>Daily 1 Task</p><p>Total Profit: ${tot} PKR</p><p>24/7 Support</p>
+<div class="rb"><b>Refer Bonus</b><br>Level 1: ${bonusTxt(p.price)}</div><button class="cy" onclick="openInvest('${d.id}')">INVEST NOW</button></div>`;});
+$("plansList").innerHTML=h||'<p style="text-align:center">No plans available.</p>';renderTasks();}
+catch(e){$("plansList").innerHTML='<p style="text-align:center">Error loading plans.</p>'}}
+function renderTeam(){
+$("teamT").innerHTML="<tr><th>Username</th><th>Bonus</th><th>Joined</th></tr>"+(refs.length?refs.sort((a,b)=>ms(b)-ms(a)).map(r=>`<tr><td>${esc(r.referredName)}</td><td class="${r.bonusPaid!==false?"ok":"pen"}">${r.bonusPaid!==false?"+Rs "+(r.bonusAmount??50):"Pending"}</td><td>${r.createdAt?.toDate?r.createdAt.toDate().toLocaleDateString():"—"}</td></tr>`).join(""):'<tr><td colspan="3" style="text-align:center">Abhi tak kisi ko refer nahi kiya.</td></tr>');}
+function renderTx(){$("txList").innerHTML=txs.sort((a,b)=>ms(b)-ms(a)).map(t=>`<div class="pc" style="display:flex;justify-content:space-between;padding:12px"><div>${esc(t.type)}<br><small style="color:#9aa6e0">${t.createdAt?.toDate?t.createdAt.toDate().toLocaleString():"Just now"}</small></div><b class="${/Purchased|Withdraw/.test(t.type)?"bad":"ok"}">Rs. ${t.amount}</b></div>`).join("")||'<p style="text-align:center">No transactions yet.</p>';}
+function histRows(list,q){q=(q||"").toLowerCase();return list.filter(x=>!q||(x.txId||"").toLowerCase().includes(q)||(x.method||"").toLowerCase().includes(q)).sort((a,b)=>ms(b)-ms(a));}
+window.renderHist=function(){
+[["dh",deps,"txId"],["wh",wds,"accountNumber"]].forEach(([k,l,idf])=>{
+const rows=histRows(l,$(k+"Q").value);
+$(k+"T").innerHTML="<tr><th>Gateway | Transaction</th><th>Initiated</th><th>Amount</th><th>Status</th><th>Action</th></tr>"+(rows.length?rows.map(x=>{const m=ms(x),c=st(x.status);return `<tr><td><b>${esc(x.method)}</b><br><small>${esc(x[idf]||"")}</small></td><td>${new Date(m).toLocaleString()}<br><small>${ago(m)}</small></td><td>Pkr ${f2(x.amount)}</td><td class="${c}">${esc(x.status||"pending")}</td><td><button class="dbtn" onclick="showDet('${k}','${x.id}')">🖥</button></td></tr>`}).join(""):'<tr><td colspan="5" style="text-align:center">Data not found</td></tr>');});};
+window.showDet=function(k,id){const x=(k==="dh"?deps:wds).find(r=>r.id===id);if(!x)return;const m=ms(x);
+const r=(a,b)=>`<div class="dr"><span>${a}</span><b>${b}</b></div>`;
+$("detBody").innerHTML=`<h3>${k==="dh"?"Deposit":"Withdraw"} Details</h3>`+r("Gateway",esc(x.method))+r(k==="dh"?"Transaction ID":"Account",esc(x.txId||x.accountNumber||"—"))+(x.accountTitle?r("Title",esc(x.accountTitle)):"")+(x.senderAccount?r("Sender",esc(x.senderAccount)):"")+r("Initiated",new Date(m).toLocaleString()+" ("+ago(m)+")")+r("Amount","Rs "+f2(x.amount))+r("Status",esc(x.status||"pending"))+'<div style="display:flex;gap:8px;margin-top:14px"><button class="cy" onclick="event.stopPropagation();rcpt(\''+k+'\',\''+id+'\',0)">⬇ Receipt</button><button class="cy" style="background:#16a34a" onclick="event.stopPropagation();rcpt(\''+k+'\',\''+id+'\',1)">↗ Share</button></div>';show("detModal");};
+
+
+// ---------- RECEIPT (image) ----------
+window.rcpt=function(k,id,share){
+const x=(k==="dh"?deps:wds).find(r=>r.id===id);if(!x)return;
+const dep=k==="dh",m=ms(x),c=st(x.status),cv=document.createElement("canvas");cv.width=600;cv.height=860;const g=cv.getContext("2d");
+g.fillStyle="#fff";g.fillRect(0,0,600,860);g.fillStyle="#0f9d58";g.fillRect(0,0,600,120);
+g.fillStyle="#fff";g.textAlign="center";g.font="bold 30px sans-serif";g.fillText(S.appName||"Earning App",300,55);g.font="18px sans-serif";g.fillText(dep?"DEPOSIT RECEIPT":"WITHDRAWAL RECEIPT",300,90);
+g.fillStyle=c==="ok"?"#2e7d32":c==="bad"?"#d32f2f":"#ef6c00";g.font="bold 26px sans-serif";g.fillText(c==="ok"?"APPROVED":c==="bad"?"REJECTED":"PENDING",300,178);
+g.fillStyle="#111";g.font="bold 46px sans-serif";g.fillText("Rs "+f2(x.amount),300,245);
+const cut=s=>{s=String(s||"—");return s.length>26?s.slice(0,25)+"…":s};
+const rows=[["Receipt No","#"+id.slice(0,10).toUpperCase()],["Type",dep?"Deposit":"Withdrawal"],["Method",x.method],[dep?"Transaction ID":"Account No",dep?x.txId:x.accountNumber],[dep?"Sender Account":"Account Title",dep?x.senderAccount:x.accountTitle],["Name",U.fullName],["Date",new Date(m).toLocaleString()]];
+let y=315;rows.forEach(r=>{g.textAlign="left";g.fillStyle="#777";g.font="18px sans-serif";g.fillText(r[0],40,y);g.textAlign="right";g.fillStyle="#111";g.font="bold 19px sans-serif";g.fillText(cut(r[1]),560,y);g.fillStyle="#e5e7eb";g.fillRect(40,y+16,520,1);y+=66});
+g.textAlign="center";g.fillStyle="#999";g.font="14px sans-serif";g.fillText("Computer generated receipt",300,825);
+cv.toBlob(async b=>{const f=new File([b],"receipt-"+id.slice(0,6)+".png",{type:"image/png"});
+if(share&&navigator.canShare&&navigator.canShare({files:[f]})){try{await navigator.share({files:[f],title:"Receipt"})}catch(_){}return}
+const a=document.createElement("a");a.href=URL.createObjectURL(b);a.download=f.name;document.body.appendChild(a);a.click();a.remove();toast("Receipt save ho gayi"+(share?" (Share is browser mein support nahi)":""),1)});};
+// ---------- DEPOSIT / WITHDRAW ----------
+function updPay(){const a=parseFloat($("dAmt").value)||0;$("payBox").textContent="You need to pay "+f2(a)+" PKR";
+$("instr").textContent=S.paymentNumber?`Please send money to our ${S.paymentMethod||""} account and enter your Transaction ID below. Approval takes 10 to 20 minutes.\n\nACCOUNT NUMBER\n${S.paymentNumber}\n\nACCOUNT NAME\n${S.paymentTitle||"—"}`:"Admin ne payment info set nahi ki.";}
+$("dAmt").oninput=updPay;
+function shrink(file){return new Promise((res,rej)=>{const fr=new FileReader();fr.onerror=rej;fr.onload=()=>{const im=new Image();im.onerror=rej;im.onload=()=>{
+const go2=(max,q)=>{const s=Math.min(1,max/Math.max(im.width,im.height)),cv=document.createElement("canvas");cv.width=Math.round(im.width*s);cv.height=Math.round(im.height*s);cv.getContext("2d").drawImage(im,0,0,cv.width,cv.height);return cv.toDataURL("image/jpeg",q)};
+let o=go2(900,.6);if(o.length>450000)o=go2(700,.45);res(o)};im.src=fr.result};fr.readAsDataURL(file)})}
+$("dProof").onchange=async()=>{const f=$("dProof").files[0];if(!f){hide("dPrev");return}try{$("dPrev").src=await shrink(f);show("dPrev")}catch(_){hide("dPrev");toast("Ye file image nahi lag rahi")}};window.qa=v=>{$("dAmt").value=v;updPay()};
+window.submitDeposit=async function(b){
+const amount=parseFloat($("dAmt").value),acc=$("dAcc").value.trim(),tid=$("dTid").value.trim();
+if(!amount||amount<=0)return toast("Valid amount dalen");if(S.minDeposit&&amount<S.minDeposit)return toast("Minimum deposit Rs "+S.minDeposit+" hai");if(!acc)return toast("Sender Account Number required");if(!tid)return toast("Transaction ID required");
+b.disabled=true;
+let proof="";const fl=$("dProof").files[0];
+if(!fl){b.disabled=false;return toast("Payment ka screenshot lagana zaroori hai")}
+if(fl){try{proof=await shrink(fl)}catch(e){b.disabled=false;return toast("Screenshot load nahi hui, dobara chunein")}
+if(proof.length>700000){b.disabled=false;return toast("Screenshot bohat bari hai, doosri chunein")}}
+const key=tid.toUpperCase().replace(/[^A-Z0-9_-]/g,"");if(!key){b.disabled=false;return toast("Transaction ID sahi likhein")}
+try{const u=auth.currentUser,wb=writeBatch(db);
+wb.set(doc(db,"usedTxIds",key),{userId:u.uid,createdAt:serverTimestamp()});
+wb.set(doc(collection(db,"depositRequests")),{userId:u.uid,userName:U.fullName,userEmail:u.email,amount,method:$("dMethod").value,status:"pending",senderAccount:acc,txId:tid,...(proof?{proof}:{}),createdAt:serverTimestamp()});
+await wb.commit();
+notifyAdmin("New Deposit","Rs "+amount+" - "+(U.fullName||"User")+" ("+$("dMethod").value+")");toast("Deposit request bhej di gayi hai! Admin verify karega.",1);$("dAmt").value=$("dAcc").value=$("dTid").value="";$("dProof").value="";hide("dPrev");go("dh");}
+catch(e){toast(e.code==="permission-denied"?"Ye Transaction ID pehle use ho chuki hai, ya request qabool nahi hui.":"Error: "+e.message)}b.disabled=false;};
+window.wSel=function(m){wMethod=m;$("wLbl").textContent=m+" Withdraw";show("wForm");$("wAmt").focus();};
+window.submitWithdraw=async function(b){
+const amount=parseFloat($("wAmt").value),acc=$("wAcc").value.trim(),t=$("wTitle").value.trim();
+if(!amount||amount<=0)return toast("Valid amount dalen");if(!acc)return toast("Account Number required");if(!t)return toast("Account Title required");
+if(S.minWithdraw&&amount<S.minWithdraw)return toast("Minimum withdraw Rs "+S.minWithdraw+" hai");if((U.balance||0)<amount)return toast("Aapke paas itne balance nahi hain");
+b.disabled=true;
+try{const u=auth.currentUser;await addDoc(collection(db,"withdrawalRequests"),{userId:u.uid,userName:U.fullName,userEmail:u.email,amount,method:wMethod,accountNumber:acc,accountTitle:t,status:"pending",createdAt:serverTimestamp()});
+notifyAdmin("New Withdrawal","Rs "+amount+" - "+(U.fullName||"User")+" ("+wMethod+")");toast("Withdrawal request bhej di gayi hai! Admin verify karega.",1);$("wAmt").value=$("wAcc").value=$("wTitle").value="";hide("wForm");go("wh");}
+catch(e){toast("Error: "+e.message)}b.disabled=false;};
+
+// ---------- INVEST ----------
+window.openInvest=function(id){
+if(!U||!plans[id])return;
+if(myPlans.some(x=>x.data.planId===id))return toast("You already have an active subscription for this plan");
+invPlan=id;const p=plans[id];$("invAmt").textContent="Invest Amount: Rs "+p.price;$("invIn").value=f2(p.price);pickM(document.querySelector('#invModal [data-m="'+invMethod+'"]'));show("invModal");};
+window.pickM=function(el){if(!el)return;invMethod=el.dataset.m;document.querySelectorAll("#invModal .pm button").forEach(b=>b.classList.toggle("s",b===el));};
+window.closeInv=()=>hide("invModal");
+window.confirmInvest=async function(){
+const planId=invPlan,btn=$("invBtn");if(!planId)return;
+const price=plans[planId].price;
+if((U.balance||0)<price){closeInv();$("dAmt").value=price;$("dMethod").value=invMethod;toast("Balance kam hai! Pehle deposit karein.");go("deposit");return;}
+btn.disabled=true;btn.textContent="Please wait...";
+try{
+const user=auth.currentUser,uid=user.uid;
+const [us,ps,rs,cs]=await Promise.all([getDoc(doc(db,"users",uid)),getDoc(doc(db,"plans",planId)),getDoc(doc(db,"referrals",uid)),getDoc(doc(db,"appSettings","config"))]);
+if(!ps.exists())throw new Error("Ye plan ab maujood nahi.");
+const u=us.data(),p=ps.data();if((u.balance||0)<p.price)throw new Error("Aapke paas balance kam hai!");
+const n=(u.planCount||0)+1,b=writeBatch(db);
+b.update(doc(db,"users",uid),{balance:increment(-p.price),planCount:n});
+b.set(doc(db,"userPlans",`${uid}_${n}`),{userId:uid,userName:u.fullName,userEmail:user.email,planId,planName:p.name,pricePaid:p.price,dailyReward:p.dailyReward,durationDays:p.durationDays,daysPaid:0,status:"active",purchasedAt:serverTimestamp()});
+b.set(doc(collection(db,"transactions")),{userId:uid,amount:p.price,type:`Purchased ${p.name}`,createdAt:serverTimestamp()});
+if(n===1&&rs.exists()&&rs.data().bonusPaid===false){const r=rs.data(),bonus=calcBonus(cs.exists()?cs.data():{},p.price);
+b.update(doc(db,"referrals",uid),{bonusPaid:true,bonusAmount:bonus,bonusPaidAt:serverTimestamp()});
+b.update(doc(db,"users",r.referrerId),{balance:increment(bonus)});
+b.set(doc(collection(db,"transactions")),{userId:r.referrerId,amount:bonus,type:"Referral Bonus",referredId:uid,createdAt:serverTimestamp()});}
+await b.commit();closeInv();toast("🎉 Mubarak ho! Aapne plan kharid liya hai.",1);go("task");
+}catch(e){toast("Plan nahi khareeda ja saka: "+e.message)}
+btn.disabled=false;btn.textContent="CONFIRM INVEST";};
+
+// ---------- TASK (daily reward) ----------
+const DAY=86400000,PK=5*3600000,pkDay=m=>Math.floor((m+PK)/DAY);
+const rewardOf=p=>p.dailyReward??plans[p.planId]?.dailyReward??null,durOf=p=>p.durationDays??plans[p.planId]?.durationDays??null;
+function lastDay(p){if(p.lastClaimDay!=null)return p.lastClaimDay;if(p.lastClaimedAt?.toMillis)return pkDay(p.lastClaimedAt.toMillis());if(p.purchasedAt?.toMillis)return pkDay(p.purchasedAt.toMillis());return null;}
+function renderTasks(){
+if(!myPlans.length){$("taskList").innerHTML='<div class="tbox">Koi active plan nahi. Pehle plan kharidein.</div>';return}
+const now=Date.now(),today=pkDay(now),left=(today+1)*DAY-PK-now,h=Math.floor(left/3600000),m=Math.floor(left%3600000/60000);
+$("taskList").innerHTML=myPlans.map(({id,data:p})=>{
+const r=rewardOf(p),d=durOf(p),l=lastDay(p),never=p.lastClaimDay==null&&!p.lastClaimedAt,can=r!=null&&d!=null&&l!=null&&today>l;
+const a=r==null?"<small>Plan ki tafseel load ho rahi hai...</small>":can?`<button class="claim" onclick="claimReward('${id}',this)">🎁 Claim Reward (Rs. ${r})</button><small style="color:#c62828">Raat 12 baje tak (${h}h ${m}m baqi).</small>`:`<button class="claim" disabled>${never?"⏳ Pehla reward raat 12 baje ke baad":"✅ Aaj ka reward claim ho chuka"}</button><small style="color:gray">Agla claim ${h}h ${m}m baad.</small>`;
+return `<div class="act"><b style="color:#2e7d32">${esc(p.planName)}</b><br><small>Daily Reward: ${r??"—"} PKR${d?" • Din "+(p.daysPaid||0)+" / "+d:""}</small>${a}</div>`}).join("");}
+setInterval(renderTasks,60000);
+function showAd(){return new Promise(res=>{let n=Math.max(3,Math.min(30,+S.adSeconds||5));
+$("adImg").onerror=()=>{};$("adImg").src=S.adImage;$("adImg").onclick=()=>{if(S.adLink)window.open(fixUrl(S.adLink),"_blank")};$("adCnt").textContent=n;show("adBox");
+const t=setInterval(()=>{n--;$("adCnt").textContent=n;if(n<=0){clearInterval(t);hide("adBox");res()}},1000);});}
+window.claimReward=async function(id,btn){
+const e=myPlans.find(x=>x.id===id);if(!e||!auth.currentUser)return;const p=e.data,r=rewardOf(p),d=durOf(p);if(r==null||d==null)return;
+btn.disabled=true;btn.textContent="Claiming...";
+if(S.adImage){btn.textContent="Ad chal raha hai...";await showAd();btn.textContent="Claiming...";}
+try{const uid=auth.currentUser.uid,nd=(p.daysPaid||0)+1,b=writeBatch(db);
+b.update(doc(db,"users",uid),{balance:increment(r),lastClaimPlan:id});
+b.update(doc(db,"userPlans",id),{daysPaid:nd,status:nd>=d?"completed":"active",lastClaimDay:pkDay(Date.now()),lastClaimedAt:serverTimestamp()});
+b.set(doc(collection(db,"transactions")),{userId:uid,amount:r,type:`Daily Reward (${p.planName})`,createdAt:serverTimestamp()});
+await b.commit();toast(`🎉 Rs. ${r} ka reward claim ho gaya!`,1);}
+catch(x){toast("Reward claim nahi ho saka: "+x.message+" (Phone ka waqt sahi hai?)");renderTasks();}};
+
+// ---------- TEAM / CHAT ----------
+window.copyRef=function(){const v=$("refLink").value;(navigator.clipboard&&isSecureContext?navigator.clipboard.writeText(v).then(()=>toast("Referral link copied",1)).catch(()=>prompt("Copy:",v)):Promise.resolve(prompt("Copy:",v)));};
+window.shareRef=function(){window.open("https://wa.me/?text="+encodeURIComponent("Join me and start earning: "+$("refLink").value),"_blank")};
+function renderChat(msgs){msgs.sort((a,b)=>ms(a)-ms(b));const b=$("chatBox");
+b.innerHTML=msgs.length?msgs.map(m=>`<div class="m ${m.sender==="admin"?"admin":"user"}">${esc(m.text)}<small>${m.sender==="admin"?"Admin • ":""}${m.createdAt?.toDate?m.createdAt.toDate().toLocaleString([],{dateStyle:"short",timeStyle:"short"}):"Sending..."}</small></div>`).join(""):'<div style="margin:auto;color:#777;text-align:center">Koi message nahi. Admin se baat shuru karein 👋</div>';b.scrollTop=b.scrollHeight;}
+window.sendChat=async function(){const i=$("chatIn"),t=i.value.trim();if(!t||!auth.currentUser)return;i.value="";
+try{await addDoc(collection(db,"messages"),{userId:auth.currentUser.uid,userName:U?.fullName||"User",sender:"user",text:t.slice(0,1000),createdAt:serverTimestamp()});}catch(e){toast("Message send nahi hua: "+e.message);i.value=t}};
+$("chatIn").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();sendChat()}});
+go("home");
+</script></body></html>
