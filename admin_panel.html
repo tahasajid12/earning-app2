@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/><title>Earning Admin Panel</title>
+<style>
+:root{--primary:#1A237E;--bg:#f5f6fa;--error:#d32f2f;--success:#2e7d32;--warning:#ef6c00;--border:#e0e0e0;--radius:14px}
+*{box-sizing:border-box;margin:0;padding:0}body{font-family:sans-serif;background:var(--bg);color:#1a1a1a}
+.hidden{display:none!important}.screen{min-height:100vh;display:flex;flex-direction:column}
+#loginScreen{justify-content:center;align-items:center;padding:24px;background:linear-gradient(160deg,#1A237E,#0D47A1)}
+.login-card{background:#fff;border-radius:var(--radius);padding:32px;width:100%;max-width:400px}
+.field{margin-bottom:16px}label{font-size:13px;font-weight:bold;margin-bottom:5px;display:block}
+input,textarea,select{width:100%;padding:12px;border-radius:8px;border:1px solid var(--border);outline:0;font-size:14px;font-family:inherit;background:#fff}
+.btn{width:100%;padding:12px;background:var(--primary);color:#fff;border:0;border-radius:8px;font-weight:bold;cursor:pointer}
+.topbar{background:var(--primary);color:#fff;padding:12px 14px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:10}
+.topbar .t{flex:1}.topbar h2{font-size:18px}
+.menu{position:relative;background:rgba(255,255,255,.2);color:#fff;border:0;border-radius:8px;width:42px;height:38px;font-size:22px;cursor:pointer}
+.menu i{position:absolute;top:-5px;right:-5px;background:var(--error);font-style:normal;font-size:10px;border-radius:10px;padding:1px 6px}
+.content{padding:16px;padding-bottom:40px;flex:1}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px}
+.stat-card{background:#fff;padding:16px;border-radius:var(--radius);text-align:center;box-shadow:0 2px 8px rgba(0,0,0,.05)}.stat-value{font-size:20px;font-weight:bold;color:var(--primary)}
+.request-card{background:#fff;padding:16px;border-radius:var(--radius);margin-bottom:12px;border-left:4px solid var(--warning);box-shadow:0 2px 8px rgba(0,0,0,.05)}
+.req-actions{display:flex;gap:10px;margin-top:12px}.req-actions button,.btn-approve{border:0;color:#fff;padding:10px;border-radius:6px;flex:1;font-weight:bold;cursor:pointer}
+.btn-approve{background:var(--success)}.btn-reject,.btn-delete{background:var(--error)}.btn-suspend{background:var(--warning)}
+.empty-msg{text-align:center;padding:20px;color:gray}
+.chat-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}.new-badge{background:var(--error);color:#fff;font-size:10px;font-weight:bold;padding:2px 8px;border-radius:10px}
+.chat-box{background:#f4f5f9;padding:10px;border-radius:8px;max-height:240px;overflow-y:auto;margin-bottom:10px;display:flex;flex-direction:column;gap:6px}
+.chat-msg{max-width:80%;padding:7px 11px;border-radius:12px;font-size:13px;word-wrap:break-word;white-space:pre-wrap}.chat-msg small{display:block;font-size:9px;opacity:.65;margin-top:2px}
+.chat-msg.admin{align-self:flex-end;background:var(--primary);color:#fff}.chat-msg.user{align-self:flex-start;background:#fff;border:1px solid var(--border)}
+.tab-panel{display:none}.tab-panel.active{display:block;animation:f .2s}@keyframes f{from{opacity:0}to{opacity:1}}
+/* DRAWER */
+#shade{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:40;opacity:0;pointer-events:none;transition:.2s}#shade.on{opacity:1;pointer-events:auto}
+#drawer{position:fixed;top:0;bottom:0;left:0;width:78%;max-width:300px;background:#fff;z-index:50;transform:translateX(-100%);transition:transform .22s;display:flex;flex-direction:column}
+#drawer.on{transform:none}
+.dh{background:var(--primary);color:#fff;padding:22px 16px}.dh b{font-size:19px;display:block}.dh small{opacity:.8;word-break:break-all}
+#drawer nav{flex:1;overflow-y:auto;padding:8px 0}
+#drawer nav button{width:100%;display:flex;align-items:center;gap:14px;padding:14px 18px;background:none;border:0;font-size:15px;text-align:left;cursor:pointer;color:#333}
+#drawer nav button.active{background:#e8eaf6;color:var(--primary);font-weight:bold;border-left:4px solid var(--primary)}
+#drawer nav button em{margin-left:auto;font-style:normal;background:var(--error);color:#fff;font-size:11px;padding:1px 8px;border-radius:10px}
+.uinfo{background:#eef0ff;border-radius:8px;padding:8px 10px;margin:8px 0;font-size:12px;color:#334;line-height:1.6}.btn-copy{background:#455a9e!important}
+.sec{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:14px;background:#fafbff}.sec h4{color:var(--primary);margin-bottom:10px;font-size:14px}
+</style></head><body>
+<div id="loginScreen" class="screen"><div class="login-card"><h1 style="text-align:center;margin-bottom:20px;color:var(--primary)">Admin Panel</h1>
+<form id="loginForm"><div class="field"><input id="email" type="email" placeholder="Admin Email" required/></div><div class="field"><input id="password" type="password" placeholder="Password" required/></div><button id="loginBtn" class="btn">Login</button></form>
+<div id="loginError" style="color:red;margin-top:10px;text-align:center;font-size:13px"></div></div></div>
+
+<div id="appScreen" class="screen hidden">
+<div id="shade" onclick="toggleMenu(false)"></div>
+<aside id="drawer"><div class="dh"><b>Admin Panel</b><small id="adminEmailDisplay">—</small></div>
+<nav>
+<button data-tab="dashboard" onclick="switchTab('dashboard')">📊 Dashboard</button>
+<button data-tab="tasks" onclick="switchTab('tasks')">📝 Tasks</button>
+<button data-tab="chats" onclick="switchTab('chats')">💬 Chats<em id="chatCnt" class="hidden"></em></button>
+<button data-tab="users" onclick="switchTab('users')">👥 Users</button>
+<button data-tab="deposits" onclick="switchTab('deposits')">💰 Deposits<em id="depCnt" class="hidden"></em></button>
+<button data-tab="withdrawals" onclick="switchTab('withdrawals')">💸 Withdrawals<em id="wdCnt" class="hidden"></em></button>
+<button data-tab="settings" onclick="switchTab('settings')">⚙️ Settings</button>
+<button onclick="handleLogout()" style="color:var(--error)">🚪 Logout</button></nav></aside>
+
+<div id="proofView" onclick="this.style.display='none'" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:300;align-items:center;justify-content:center;padding:10px"><img id="proofImg" style="max-width:100%;max-height:100%;object-fit:contain"/></div>
+<div class="topbar"><button class="menu" onclick="toggleMenu(true)">☰<i id="menuBadge" class="hidden"></i></button><div class="t"><h2 id="pageTitle">Dashboard</h2></div></div>
+<div class="content">
+<div id="tab-dashboard" class="tab-panel active">
+<div class="grid-2"><div class="stat-card"><div>Total Users</div><div class="stat-value" id="statTotalUsers">0</div></div><div class="stat-card"><div>Pending Deposits</div><div class="stat-value" id="statPendingDeposits">0</div></div></div>
+<button class="btn" style="background:var(--success);margin-bottom:10px" onclick="addNewPlan()">➕ Create New VIP Plan</button>
+<button class="btn" style="background:var(--warning)" onclick="addNewTask()">📝 Create New Task</button></div>
+<div id="tab-tasks" class="tab-panel"><div id="tasksList"></div></div>
+<div id="tab-chats" class="tab-panel"><div id="chatsList"></div></div>
+<div id="tab-users" class="tab-panel"><div id="usersList"></div></div>
+<div id="tab-deposits" class="tab-panel"><div id="depositList"></div></div>
+<div id="tab-withdrawals" class="tab-panel"><div id="withdrawList"></div></div>
+<div id="tab-settings" class="tab-panel"><div class="stat-card" style="text-align:left">
+<div class="sec"><h4>🤝 Referral Reward</h4>
+<div class="field"><label>Reward Type</label><select id="settingRefMode" onchange="refUi()"><option value="fixed">Fixed amount (Rs)</option><option value="percent">Percentage of plan price (%)</option><option value="both">Both (Fixed + Percentage)</option></select></div>
+<div class="field" id="fxBox"><label>Fixed Bonus (PKR) — e.g. 20, 30, 50</label><input id="settingRefBonus" type="number" min="0"/></div>
+<div class="field" id="pcBox"><label>Percentage (%) — e.g. 10</label><input id="settingRefPercent" type="number" min="0" max="100" step="0.1" oninput="refUi()"/></div>
+<small id="refPreview" style="color:#555"></small></div>
+<div class="field"><label>Minimum Deposit (PKR)</label><input id="settingMinDeposit" type="number"/></div>
+<div class="field"><label>Minimum Withdrawal (PKR)</label><input id="settingMinWithdraw" type="number"/></div>
+<hr style="margin:15px 0;border:0;border-top:1px solid #ddd">
+<div class="field"><label>Payment Number (Easypaisa/JazzCash)</label><input id="settingPayNumber"/></div>
+<div class="field"><label>Account Title</label><input id="settingPayTitle"/></div>
+<div class="field"><label>Payment Method Name</label><input id="settingPayMethod"/></div>
+<hr style="margin:15px 0;border:0;border-top:1px solid #ddd">
+<div class="field"><label>Admin WhatsApp Number (optional)</label><input id="settingAdminWa" placeholder="923001234567"/></div>
+<div class="field"><label>Community / WhatsApp Group Link (optional)</label><input id="settingGroup"/></div>
+<div class="field"><label>App Download Link (optional)</label><input id="settingAppLink"/></div>
+<div class="sec"><h4>📺 Claim Ad (reward se pehle)</h4>
+<div class="field"><label>Ad Image Link (khali = ad nahi chalega)</label><input id="settingAdImage" placeholder="https://.../banner.jpg"/></div>
+<div class="field"><label>Ad par click ka Link (optional)</label><input id="settingAdLink" placeholder="https://..."/></div>
+<div class="field"><label>Ad Seconds (3 se 30)</label><input id="settingAdSec" type="number" min="3" max="30"/></div></div>
+<div class="sec"><h4>🔔 Notifications</h4>
+<button class="btn" style="background:#455a9e;margin-bottom:10px" onclick="enableAlerts()">Is panel mein alerts ON karein</button>
+<div class="field"><label>Phone Notification Topic (ntfy)</label><input id="settingNtfy" placeholder="e.g. earn-admin-x7k2q9"/></div>
+<button class="btn" style="background:#455a9e;margin-bottom:8px" onclick="genTopic()">Naya random topic banayein</button>
+<button class="btn" style="background:#2e7d32" onclick="testPush()">Test notification bhejein</button>
+<small style="color:#555;display:block;margin-top:8px">Phone mein ntfy app lagayein, "+" dabayein aur yahi topic subscribe karein. Topic save karna na bhoolein.</small></div>
+<div class="field"><label>App Notice (Empty = Hide)</label><textarea id="settingNotice" rows="2"></textarea></div>
+<button class="btn" onclick="saveSettings()">Save All Settings</button></div></div>
+</div></div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged, getIdTokenResult } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { getFirestore, collection, query, where, onSnapshot, doc, runTransaction, serverTimestamp, getCountFromServer, addDoc, getDoc, setDoc, deleteDoc, updateDoc, getDocs } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+const app=initializeApp({apiKey:"AIzaSyDxlvVuaz36spNRfPnimsPJBTWWFT7fhbk",authDomain:"earning-admin-app-d9b38.firebaseapp.com",projectId:"earning-admin-app-d9b38",storageBucket:"earning-admin-app-d9b38.firebasestorage.app",messagingSenderId:"602619033913",appId:"1:602619033913:web:f2282f455cd240139310e8"});
+const auth=getAuth(app),db=getFirestore(app),$=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const titles={dashboard:"Dashboard",tasks:"Manage Tasks",chats:"Support Chats",users:"All Users",deposits:"Pending Deposits",withdrawals:"Pending Withdrawals",settings:"App Settings"};
+let cnt={chat:0,dep:0,wd:0};
+
+$("loginForm").addEventListener("submit",async e=>{e.preventDefault();$("loginError").textContent="";$("loginBtn").disabled=true;$("loginBtn").textContent="Logging in...";
+try{const c=await signInWithEmailAndPassword(auth,$("email").value,$("password").value);const t=await getIdTokenResult(c.user,true);if(t.claims.admin!==true){await signOut(auth);throw new Error("Access Denied.")}}
+catch(err){$("loginError").textContent=err.message;$("loginBtn").disabled=false;$("loginBtn").textContent="Login"}});
+onAuthStateChanged(auth,user=>{if(user){$("loginScreen").classList.add("hidden");$("appScreen").classList.remove("hidden");$("adminEmailDisplay").textContent=user.email;
+loadStats();listenDeposits();listenWithdrawals();listenUsers();listenTasks();listenChats();loadSettings();switchTab("dashboard");}
+else{$("loginScreen").classList.remove("hidden");$("appScreen").classList.add("hidden");$("loginBtn").disabled=false;$("loginBtn").textContent="Login"}});
+window.handleLogout=()=>{toggleMenu(false);signOut(auth)};
+window.toggleMenu=on=>{$("drawer").classList.toggle("on",on);$("shade").classList.toggle("on",on)};
+window.switchTab=name=>{document.querySelectorAll(".tab-panel").forEach(p=>p.classList.remove("active"));document.querySelectorAll("#drawer nav button").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));
+$("tab-"+name)?.classList.add("active");$("pageTitle").textContent=titles[name]||"Admin Panel";toggleMenu(false);window.scrollTo(0,0);
+if(name==="chats")document.querySelectorAll('[id^="chatBox_"]').forEach(b=>b.scrollTop=b.scrollHeight)};
+function badges(){const set=(id,n)=>{$(id).textContent=n;$(id).classList.toggle("hidden",!n)};set("chatCnt",cnt.chat);set("depCnt",cnt.dep);set("wdCnt",cnt.wd);set("menuBadge",cnt.chat+cnt.dep+cnt.wd)}
+
+async function loadStats(){try{const u=await getCountFromServer(collection(db,"users")),d=await getCountFromServer(query(collection(db,"depositRequests"),where("status","==","pending")));$("statTotalUsers").textContent=u.data().count;$("statPendingDeposits").textContent=d.data().count}catch(e){console.log(e)}}
+
+// TASKS
+function listenTasks(){onSnapshot(collection(db,"tasks"),s=>{let h="";s.forEach(d=>{const t=d.data();h+=`<div class="request-card"><strong>${esc(t.title)}</strong><br><span style="font-size:12px;color:gray">Reward: Rs. ${t.reward} | Link: ${esc(t.link||"N/A")}</span><div class="req-actions"><button class="btn-delete" onclick="deleteTask('${d.id}')">Delete</button></div></div>`});$("tasksList").innerHTML=h||"<div class='empty-msg'>No tasks created.</div>"})}
+window.addNewTask=async()=>{const title=prompt("Task Title (e.g. Watch Video):"),reward=prompt("Reward Amount (PKR):"),link=prompt("Task Link (Optional):");if(!title||!reward)return alert("Title and Reward required!");
+try{await addDoc(collection(db,"tasks"),{title,reward:parseFloat(reward),link:link||"",createdAt:serverTimestamp()});alert("✅ Task created!")}catch(e){alert(e.message)}};
+window.deleteTask=async id=>{if(confirm("Delete this task?"))await deleteDoc(doc(db,"tasks",id))};
+
+// CHATS
+const names={};
+function listenChats(){onSnapshot(collection(db,"messages"),snap=>{
+const convs={};snap.forEach(d=>{const m=d.data();if(!m.userId)return;const c=convs[m.userId]||(convs[m.userId]={userId:m.userId,userName:names[m.userId]||"User",msgs:[]});if(m.sender!=="admin"&&m.userName)c.userName=m.userName;c.msgs.push(m)});
+const ts=m=>m.createdAt?.toMillis?m.createdAt.toMillis():Date.now(),list=Object.values(convs);
+list.forEach(c=>{c.msgs.sort((a,b)=>ts(a)-ts(b));c.last=c.msgs[c.msgs.length-1];names[c.userId]=c.userName});list.sort((a,b)=>ts(b.last)-ts(a.last));
+const typed={},sc={},fid=document.activeElement?document.activeElement.id:"";
+document.querySelectorAll('[id^="reply_"]').forEach(i=>typed[i.id]=i.value);
+document.querySelectorAll('[id^="chatBox_"]').forEach(b=>sc[b.id]={top:b.scrollTop,bot:b.scrollHeight-b.scrollTop-b.clientHeight<30});
+let unread=0,h="";
+list.forEach(c=>{const need=c.last.sender!=="admin";if(need)unread++;
+const mh=c.msgs.map(m=>`<div class="chat-msg ${m.sender==="admin"?"admin":"user"}">${esc(m.text)}<small>${m.createdAt?.toDate?m.createdAt.toDate().toLocaleString([],{dateStyle:"short",timeStyle:"short"}):"Sending..."}</small></div>`).join("");
+h+=`<div class="request-card" style="border-left-color:${need?"var(--error)":"var(--primary)"}"><div class="chat-head"><strong>${esc(c.userName)}</strong>${need?'<span class="new-badge">Reply needed</span>':""}</div><div class="chat-box" id="chatBox_${c.userId}">${mh}</div>
+<div style="display:flex;gap:5px"><input id="reply_${c.userId}" placeholder="Type reply..." maxlength="1000" autocomplete="off" onkeydown="if(event.key==='Enter'){sendReply('${c.userId}')}" style="flex:1;padding:8px"/><button class="btn-approve" style="flex:0;padding:8px 15px" onclick="sendReply('${c.userId}')">Send</button></div></div>`});
+$("chatsList").innerHTML=h||"<div class='empty-msg'>No chats yet.</div>";
+Object.keys(typed).forEach(id=>{if($(id))$(id).value=typed[id]});
+document.querySelectorAll('[id^="chatBox_"]').forEach(b=>{const s=sc[b.id];b.scrollTop=(s&&!s.bot)?s.top:b.scrollHeight});
+if(fid.startsWith("reply_")&&$(fid)){const el=$(fid);el.focus();el.setSelectionRange(el.value.length,el.value.length)}
+cnt.chat=unread;badges()},()=>{$("chatsList").innerHTML="<div class='empty-msg'>Chats load nahi huin. Firestore rules check karein.</div>"})}
+window.sendReply=async uid=>{const i=$("reply_"+uid),t=i.value.trim();if(!t)return;i.value="";
+try{await addDoc(collection(db,"messages"),{userId:uid,userName:names[uid]||"User",sender:"admin",text:t.slice(0,1000),createdAt:serverTimestamp()})}catch(e){alert("Reply send nahi hua: "+e.message);i.value=t}};
+
+// SETTINGS (referral: fixed / percent / both)
+window.refUi=()=>{const m=$("settingRefMode").value;$("fxBox").classList.toggle("hidden",m==="percent");$("pcBox").classList.toggle("hidden",m==="fixed");
+const fx=parseFloat($("settingRefBonus").value)||0,pc=parseFloat($("settingRefPercent").value)||0,ex=(m!=="percent"?fx:0)+(m!=="fixed"?400*pc/100:0);
+$("refPreview").textContent=`Example: 400 ka plan kharide to referrer ko Rs ${ex.toFixed(2)} milenge.`};
+async function loadSettings(){try{const s=await getDoc(doc(db,"appSettings","config"));if(!s.exists())return;const d=s.data();
+$("settingRefMode").value=d.referralMode||"fixed";$("settingRefBonus").value=d.referralBonus??50;$("settingRefPercent").value=d.referralPercent??0;
+$("settingMinDeposit").value=d.minDeposit??300;$("settingMinWithdraw").value=d.minWithdraw??500;$("settingPayNumber").value=d.paymentNumber||"";$("settingPayTitle").value=d.paymentTitle||"";$("settingPayMethod").value=d.paymentMethod||"";
+$("settingAdminWa").value=d.adminWhatsapp||"";$("settingGroup").value=d.whatsappGroup||"";$("settingAppLink").value=d.appLink||"";$("settingNotice").value=d.notice||"";$("settingAdImage").value=d.adImage||"";$("settingAdLink").value=d.adLink||"";$("settingAdSec").value=d.adSeconds??5;$("settingNtfy").value=d.ntfyTopic||"";refUi()}catch(e){console.log(e)}}
+$("settingRefBonus").oninput=refUi;
+window.saveSettings=async()=>{const n=(id,def)=>{const v=parseFloat($(id).value);return isNaN(v)?def:v};
+const nt=$("settingNtfy").value.trim();if(nt&&!/^[A-Za-z0-9_-]{8,64}$/.test(nt))return alert("Topic 8 se 64 characters ka ho (sirf a-z, 0-9, - aur _).");const pc=n("settingRefPercent",0);if(pc<0||pc>100)return alert("Percentage 0 se 100 ke beech hona chahiye.");
+try{await setDoc(doc(db,"appSettings","config"),{referralMode:$("settingRefMode").value,referralBonus:n("settingRefBonus",50),referralPercent:pc,minDeposit:n("settingMinDeposit",300),minWithdraw:n("settingMinWithdraw",500),
+paymentNumber:$("settingPayNumber").value.trim(),paymentTitle:$("settingPayTitle").value.trim(),paymentMethod:$("settingPayMethod").value.trim(),
+adminWhatsapp:$("settingAdminWa").value.trim(),whatsappGroup:$("settingGroup").value.trim(),appLink:$("settingAppLink").value.trim(),notice:$("settingNotice").value.trim(),adImage:$("settingAdImage").value.trim(),adLink:$("settingAdLink").value.trim(),adSeconds:Math.max(3,Math.min(30,n("settingAdSec",5))),ntfyTopic:$("settingNtfy").value.trim(),updatedAt:serverTimestamp()},{merge:true});alert("✅ Settings Saved!")}catch(e){alert(e.message)}};
+
+// USERS
+function listenUsers(){onSnapshot(collection(db,"users"),s=>{let h="";s.forEach(d=>{const u=d.data(),sus=u.status==="suspended";
+h+=`<div class="request-card" style="border-left-color:${sus?"var(--error)":"var(--primary)"}"><strong>${esc(u.fullName)}</strong> (${esc(u.email)})<br><span style="font-size:12px;color:gray">Balance: Rs. ${(u.balance||0).toFixed(2)} | Status: ${u.status||"active"}</span>
+<div class="req-actions"><button class="btn-approve" onclick="addUserBalance('${d.id}','${esc(u.fullName).replace(/'/g,"")}')">Add Bal</button><button class="${sus?"btn-approve":"btn-suspend"}" onclick="toggleSuspend('${d.id}','${u.status||"active"}')">${sus?"Activate":"Suspend"}</button></div></div>`});
+$("usersList").innerHTML=h||"<div class='empty-msg'>No users.</div>"})}
+window.toggleSuspend=async(id,cur)=>{await updateDoc(doc(db,"users",id),{status:cur==="active"?"suspended":"active"})};
+window.addUserBalance=async(uid,name)=>{const a=prompt(`Enter amount to add for ${name}:`);if(!a||isNaN(a))return;
+await runTransaction(db,async t=>{const r=doc(db,"users",uid),d=await t.get(r);t.update(r,{balance:(d.data().balance||0)+parseFloat(a)});t.set(doc(collection(db,"transactions")),{userId:uid,amount:parseFloat(a),type:"Admin Bonus",createdAt:serverTimestamp()})});alert("✅ Balance added!")};
+
+// ---- notifications ----
+const first={};
+function beep(){try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator(),g=c.createGain();o.connect(g);g.connect(c.destination);o.frequency.value=880;g.gain.value=.2;o.start();setTimeout(()=>{o.stop();c.close()},350)}catch(_){}}
+function notifyLocal(t,b){beep();try{if("Notification"in window&&Notification.permission==="granted")new Notification(t,{body:b})}catch(_){}}
+function newAlert(k,s){if(!first[k]){first[k]=1;return}s.docChanges().forEach(c=>{if(c.type==="added"){const d=c.doc.data();notifyLocal(k==="dep"?"Naya Deposit":"Naya Withdrawal","Rs "+d.amount+" - "+(d.userName||"User"))}})}
+window.enableAlerts=async()=>{if(!("Notification"in window))return alert("Is browser mein notifications support nahi.");const p=await Notification.requestPermission();alert(p==="granted"?"✅ Alerts ON. Panel khula rahe to notification aur awaaz aayegi.":"Permission nahi mili. Browser settings mein Notifications allow karein.");beep()};
+window.genTopic=()=>{const c="abcdefghjkmnpqrstuvwxyz23456789";let t="earn-";const r=crypto.getRandomValues(new Uint8Array(12));r.forEach(x=>t+=c[x%c.length]);$("settingNtfy").value=t};
+window.testPush=async()=>{const t=$("settingNtfy").value.trim();if(!t)return alert("Pehle topic likhein ya banayein.");
+try{await fetch("https://ntfy.sh/",{method:"POST",body:JSON.stringify({topic:t,title:"Test",message:"Admin notification kaam kar rahi hai ✅",priority:4})});alert("Test bhej diya. Phone ke ntfy app mein dekhein.")}catch(e){alert("Bhej nahi saka: "+e.message)}};
+
+// ---- user info (cache 60s) + copy ----
+const ucache={};
+function userInfo(uid){const c=ucache[uid];if(c&&Date.now()-c.t<60000)return c.p;
+const p=Promise.all([getDoc(doc(db,"users",uid)),getDocs(query(collection(db,"depositRequests"),where("userId","==",uid))),getDocs(query(collection(db,"withdrawalRequests"),where("userId","==",uid)))]).then(([u,d,w])=>{
+const sum=(s,st)=>{let n=0,t=0;s.forEach(x=>{const r=x.data();if(r.status===st){n++;t+=Number(r.amount)||0}});return{n,t}};
+return{u:u.exists()?u.data():null,da:sum(d,"approved"),dr:sum(d,"rejected"),wa:sum(w,"approved"),wr:sum(w,"rejected")}});
+ucache[uid]={t:Date.now(),p};return p}
+function fillInfo(){document.querySelectorAll(".uinfo[data-uid]").forEach(async el=>{
+try{const i=await userInfo(el.dataset.uid),amt=Number(el.dataset.amt)||0,u=i.u||{};
+const j=u.createdAt?.toDate?u.createdAt.toDate().toLocaleDateString():"—",low=el.dataset.chk&&(u.balance||0)<amt;
+el.innerHTML=`👤 Balance: <b>Rs ${(u.balance||0).toFixed(2)}</b> • Status: ${esc(u.status||"active")} • Joined: ${j}<br>💰 Deposits: ${i.da.n} approved (Rs ${i.da.t}), ${i.dr.n} rejected<br>💸 Withdrawals: ${i.wa.n} approved (Rs ${i.wa.t}), ${i.wr.n} rejected${low?'<br><b style="color:#d32f2f">⚠ Balance is amount se kam hai!</b>':""}`}
+catch(e){el.textContent="User info load nahi hui"}})}
+window.viewProof=src=>{$("proofImg").src=src;$("proofView").style.display="flex"};
+window.copyTxt=(t,b)=>{const ok=()=>{if(b){const o=b.textContent;b.textContent="✔ Copied";setTimeout(()=>b.textContent=o,1200)}};
+if(navigator.clipboard&&isSecureContext)navigator.clipboard.writeText(t).then(ok).catch(()=>prompt("Copy:",t));else prompt("Copy:",t)};
+
+// DEPOSITS
+window.approveDeposit=async(rid,uid)=>{try{await runTransaction(db,async t=>{const ur=doc(db,"users",uid),rr=doc(db,"depositRequests",rid),u=await t.get(ur),r=await t.get(rr);
+if(!r.exists()||r.data().status!=="pending")throw new Error("Ye request pehle hi process ho chuki hai");const amt=Number(r.data().amount)||0;
+t.update(ur,{balance:(u.data().balance||0)+amt});t.update(rr,{status:"approved",reviewedAt:serverTimestamp()});t.set(doc(collection(db,"transactions")),{userId:uid,amount:amt,type:"Deposit",createdAt:serverTimestamp()})});alert("✅ Deposit Approved!");loadStats()}catch(e){alert("❌ "+e.message)}};
+window.rejectDeposit=async id=>{await updateDoc(doc(db,"depositRequests",id),{status:"rejected",reviewedAt:serverTimestamp()});loadStats()};
+function listenDeposits(){onSnapshot(query(collection(db,"depositRequests"),where("status","==","pending")),s=>{newAlert("dep",s);let h="";s.forEach(x=>{const d=x.data();
+h+=`<div class="request-card"><strong>${esc(d.userName)}</strong><br>Method: ${esc(d.method)}<br>Sender Acc: ${esc(d.senderAccount)}<br>Amount: Rs. ${d.amount}<br>Txn ID: ${esc(d.txId)}${d.proof?`<img src="${d.proof}" alt="proof" onclick="viewProof(this.src)" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;margin-top:8px;background:#eee;cursor:zoom-in"/><small style="color:#555">Screenshot dabane par bara hoga</small>`:`<br><small style="color:#d32f2f">⚠ Screenshot nahi diya</small>`}<div class="uinfo" data-uid="${d.userId}" data-amt="${d.amount}">⏳ User info...</div><div class="req-actions"><button class="btn-approve" onclick="approveDeposit('${x.id}','${d.userId}')">Approve</button><button class="btn-copy" data-t="${esc(d.txId)}" onclick="copyTxt(this.dataset.t,this)">Copy TID</button><button class="btn-reject" onclick="rejectDeposit('${x.id}')">Reject</button></div></div>`});
+$("depositList").innerHTML=h||"<div class='empty-msg'>No pending deposits.</div>";fillInfo();cnt.dep=s.size;badges()})}
+
+// WITHDRAWALS
+window.approveWithdraw=async(rid,uid,amount)=>{try{await runTransaction(db,async t=>{const ur=doc(db,"users",uid),rr=doc(db,"withdrawalRequests",rid),u=await t.get(ur);
+if((u.data().balance||0)<amount)throw new Error("Insufficient balance!");t.update(ur,{balance:u.data().balance-amount});t.update(rr,{status:"approved",reviewedAt:serverTimestamp()});t.set(doc(collection(db,"transactions")),{userId:uid,amount,type:"Withdrawal",createdAt:serverTimestamp()})});alert("✅ Withdrawal Approved!");loadStats()}catch(e){alert("❌ "+e.message)}};
+window.rejectWithdraw=async id=>{await updateDoc(doc(db,"withdrawalRequests",id),{status:"rejected",reviewedAt:serverTimestamp()});loadStats()};
+function listenWithdrawals(){onSnapshot(query(collection(db,"withdrawalRequests"),where("status","==","pending")),s=>{newAlert("wd",s);let h="";s.forEach(x=>{const d=x.data();
+h+=`<div class="request-card" style="border-left-color:var(--error)"><strong>${esc(d.userName)}</strong><br>Method: ${esc(d.method)}<br>Acc No: ${esc(d.accountNumber)}<br>Acc Title: ${esc(d.accountTitle)}<br>Amount: Rs. ${d.amount}<div class="uinfo" data-uid="${d.userId}" data-amt="${d.amount}" data-chk="1">⏳ User info...</div><div class="req-actions"><button class="btn-copy" data-t="${esc(d.accountNumber)}" onclick="copyTxt(this.dataset.t,this)">Copy Acc No</button><button class="btn-copy" data-t="${esc(d.accountTitle)}" onclick="copyTxt(this.dataset.t,this)">Copy Title</button></div><div class="req-actions"><button class="btn-approve" onclick="approveWithdraw('${x.id}','${d.userId}',${d.amount})">Approve</button><button class="btn-reject" onclick="rejectWithdraw('${x.id}')">Reject</button></div></div>`});
+$("withdrawList").innerHTML=h||"<div class='empty-msg'>No pending withdrawals.</div>";fillInfo();cnt.wd=s.size;badges()})}
+
+window.addNewPlan=async()=>{const name=prompt("Plan Name:"),price=prompt("Price (PKR):"),dr=prompt("Daily Reward (PKR):"),du=prompt("Duration (Days):");if(!name||!price||!dr||!du)return;
+await addDoc(collection(db,"plans"),{name,price:parseFloat(price),dailyReward:parseFloat(dr),durationDays:parseInt(du),createdAt:serverTimestamp()});alert("✅ Plan created!")};
+</script></body></html>
